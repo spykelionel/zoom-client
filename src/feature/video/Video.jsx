@@ -16,12 +16,37 @@ export const VideoContainer = () => {
     return typeof window.MediaStreamTrackProcessor === "function";
   };
 
-  const startVideoButton = useCallback(() => {}, [
-    client,
-    mediaStream,
-    isSAB,
-    videoStarted,
-  ]);
+  const startVideoButton = useCallback(async () => {
+    if (videoStarted) {
+      if (!!window.chrome && !(typeof SharedArrayBuffer === "function")) {
+        setIsSAB(false);
+        await mediaStream.startVideo({
+          videoElement: document.querySelector("#self-view-video"),
+        });
+      } else {
+        setIsSAB(true);
+        await mediaStream.startVideo();
+        mediaStream.renderVideo(
+          document.querySelector("#self-view-canvas"),
+          client.getCurrentUserInfo().userId,
+          1920,
+          1000,
+          0,
+          0,
+          3
+        );
+      }
+      setVideoStarted(true);
+    } else {
+      await mediaStream.stopVideo();
+      if (isSAB) {
+        mediaStream.stopRenderVideo(
+          document.querySelector("#self-view-canvas"),
+          client.getCurrentUserInfo().userId
+        );
+      }
+    }
+  }, [client, mediaStream, isSAB, videoStarted]);
 
   const StartAudioButton = useCallback(async () => {
     if (audioStarted) {
@@ -38,15 +63,68 @@ export const VideoContainer = () => {
     }
   }, [mediaStream, isMuted, audioStarted]);
 
-  const sharedScreen = useCallback(async () => {
+  const shareScreen = useCallback(async () => {
     if (isSharedScreen) {
-      await client.stopScreenShare();
+      await mediaStream.stopShareScreen();
       setIsSharedScreen(false);
     } else {
-      await client.startScreenShare(mediaStream);
+      if (isSupportedWebCodecs()) {
+        mediaStream.startShareScreen();
+        await mediaStream.startShareScreen(
+          document.querySelector("#share-video")
+        );
+      } else {
+        await mediaStream.startShareScreen(
+          document.querySelector("#share-canvas")
+        );
+      }
       setIsSharedScreen(true);
     }
-  }, [client, mediaStream, isSharedScreen]);
+  }, [mediaStream, isSharedScreen]);
 
-  return;
+  return (
+    <div>
+      {isSAB ? (
+        <canvas
+          id="self-view-canvas"
+          width={1920}
+          height={1000}
+          className="video-container"
+        />
+      ) : (
+        <video
+          width={1920}
+          height={1000}
+          id="self-view-video"
+          className="video-container"
+          muted={isMuted}
+          autoPlay={true}
+        />
+      )}
+      {isSupportedWebCodecs() ? (
+        <canvas
+          id="share-canvas"
+          width={1920}
+          height={1000}
+          className="video-container"
+        />
+      ) : (
+        <video
+          width={1920}
+          height={1000}
+          id="share-video"
+          className="video-container"
+          muted={isMuted}
+          autoPlay={true}
+        />
+      )}
+      <div className="">
+        <button onClick={startVideoButton}>Start or Stop Video</button>
+        <button onClick={shareScreen}>Start or Stop Share Screen</button>
+      </div>
+      <div className="">
+        <button onClick={StartAudioButton}>Mute or Unmute Audio</button>
+      </div>
+    </div>
+  );
 };

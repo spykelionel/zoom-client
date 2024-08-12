@@ -1,10 +1,12 @@
 import ZoomVideo from "@zoom/videosdk";
 import { message } from "antd";
-import { useContext, useState } from "react";
-import { Route, Router, Routes } from "react-router-dom";
+import { useContext, useEffect, useState } from "react";
+import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
+
 import "./App.css";
 import { MediaContext } from "./context/MediaContext";
 import { ZoomContext } from "./context/ZoomContext";
+import { VideoContainer } from "./feature/video/Video";
 
 function App({ meetingArgs }) {
   const { sdkKey, topic, signature, name, password } = meetingArgs;
@@ -43,7 +45,7 @@ function App({ meetingArgs }) {
         <MediaContext.Provider value={mediaStream}>
           <Router>
             <Routes>
-              <Route exact path="/" element={<Home />} />
+              <Route exact path="/" element={<>Welcome</>} />
               <Route path="/video" element={<VideoContainer />} />
             </Routes>
           </Router>

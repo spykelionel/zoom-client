@@ -1,7 +1,7 @@
 export const config = {
   topic: "Test topic",
   name: "Chrome",
-  password: "your_passwrd",
+  password: "",
   userIdentity: "",
   sessionKey: "",
   roleType: 1,

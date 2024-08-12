@@ -10,8 +10,8 @@ let meetingArgs = { ...config };
 
 const getToken = async (options) => {
   // get request to your server to get token from the endpoint /generate
-  const token = await fetch(`/generate`, options).then((response) =>
-    response.json()
+  const token = await fetch(`http://localhost:4000/generate`, options).then(
+    (response) => response.json()
   );
 
   return token;
@@ -24,6 +24,7 @@ if (!meetingArgs.signature && meetingArgs.topic) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ meetingArgs }),
   };
+  // console.log(requestOptions);
 
   getToken(requestOptions).then(
     (response) => (meetingArgs.signature = response)
