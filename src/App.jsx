@@ -1,35 +1,56 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import ZoomVideo from "@zoom/videosdk";
+import { message } from "antd";
+import { useContext, useState } from "react";
+import { Route, Router, Routes } from "react-router-dom";
+import "./App.css";
+import { MediaContext } from "./context/MediaContext";
+import { ZoomContext } from "./context/ZoomContext";
 
-function App() {
-  const [count, setCount] = useState(0)
+function App({ meetingArgs }) {
+  const { sdkKey, topic, signature, name, password } = meetingArgs;
+
+  const [loading, setLoading] = useState(true);
+  const [loadingText, setLoadingText] = useState("");
+  const [mediaStream, setMediaStream] = useState();
+  const [status, setStatus] = useState(false);
+
+  const client = useContext(ZoomContext);
+
+  useEffect(() => {
+    const init = async () => {
+      client.init("US-EN", "CDN");
+
+      try {
+        await client.join(topic, name, password, signature);
+
+        const stream = client.getMediaStream();
+        setMediaStream(stream);
+        setLoading(false);
+      } catch (error) {
+        console.log("Erro joining meeting", error);
+        setLoading(false);
+        message.error(error.reason);
+      }
+    };
+    init();
+    return () => ZoomVideo.destroyClient();
+  }, [sdkKey, topic, signature, name, password, client]);
 
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div className="App">
+      {loading && <div className="loading">{loadingText}</div>}
+      {!loading && (
+        <MediaContext.Provider value={mediaStream}>
+          <Router>
+            <Routes>
+              <Route exact path="/" element={<Home />} />
+              <Route path="/video" element={<VideoContainer />} />
+            </Routes>
+          </Router>
+        </MediaContext.Provider>
+      )}
+    </div>
+  );
 }
 
-export default App
+export default App;
