@@ -18,7 +18,7 @@ const getToken = async (options) => {
 };
 
 // check if there's a signature and topic in the meetingArgs
-if (!meetingArgs.signature && meetingArgs.topic) {
+if (!meetingArgs.token && meetingArgs.topic) {
   const requestOptions = {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -26,9 +26,10 @@ if (!meetingArgs.signature && meetingArgs.topic) {
   };
   // console.log(requestOptions);
 
-  getToken(requestOptions).then(
-    (response) => (meetingArgs.signature = response)
-  );
+  getToken(requestOptions).then((response) => {
+    meetingArgs.token = response;
+    console.log(meetingArgs);
+  });
 }
 
 const client = ZoomVideo.createClient();

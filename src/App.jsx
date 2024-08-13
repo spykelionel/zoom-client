@@ -9,7 +9,11 @@ import { ZoomContext } from "./context/ZoomContext";
 import { VideoContainer } from "./feature/video/Video";
 
 function App({ meetingArgs }) {
-  const { sdkKey, topic, signature, name, password } = meetingArgs;
+  const { sdkKey, topic, token, name, password } = meetingArgs;
+
+  useEffect(() => {
+    console.log("Meeting Args", meetingArgs);
+  }, []);
 
   const [loading, setLoading] = useState(true);
   const [loadingText, setLoadingText] = useState("");
@@ -23,8 +27,8 @@ function App({ meetingArgs }) {
       client.init("US-EN", "CDN");
 
       try {
-        await client.join(topic, name, password, signature);
-
+        await client.join(topic, token, name, password);
+        // client.join("topic", "token", "username","sessionPassword")
         const stream = client.getMediaStream();
         setMediaStream(stream);
         setLoading(false);
@@ -36,7 +40,7 @@ function App({ meetingArgs }) {
     };
     init();
     return () => ZoomVideo.destroyClient();
-  }, [sdkKey, topic, signature, name, password, client]);
+  }, [sdkKey, topic, token, name, password, client]);
 
   return (
     <div className="App">
